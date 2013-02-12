@@ -69,17 +69,7 @@
 
 (function($){
 
-  var noProtocolUrl = /(^|["'(\s]|&lt;)(www\..+?\..+?)((?:[:?]|\.+)?(?=(?:\s|$)|&gt;|[)"',]))/g,
-      httpOrMailtoUrl = /(^|["'(\s]|&lt;)((?:(?:https?|ftp):\/\/|mailto:).+?)((?:[:?]|\.+)?(?=(?:\s|$)|&gt;|[)"',]))/g,
-      linkifier = function ( html ) {
-          return html
-                      .replace( noProtocolUrl, '$1<a href="<``>://$2">$2</a>$3' )  // NOTE: we escape `"http` as `"<``>` to make sure `httpOrMailtoUrl` below doesn't find it as a false-positive
-                      .replace( httpOrMailtoUrl, '$1<a href="$2">$2</a>$3' )
-                      .replace( /"<``>/g, '"http' );  // reinsert `"http`
-        },
-
-
-      linkify = $.fn.linkify = function ( cfg ) {
+  var linkify = $.fn.linkify = function ( cfg ) {
           if ( !$.isPlainObject( cfg ) )
           {
             cfg = {
@@ -89,7 +79,7 @@
           }
           var use = cfg.use,
               allPlugins = linkify.plugins || {},
-              plugins = [linkifier],
+              plugins = [],
               tmpCont,
               newLinks = [],
               callback = cfg.handleLinks;
@@ -151,7 +141,7 @@
                                       .replace( /&/g, '&amp;' )
                                       .replace( /</g, '&lt;' )
                                       .replace( />/g, '&gt;' );
-                            html = $.isFunction( plugin ) ? 
+                            html = $.isFunction( plugin ) ?
                                         plugin( html ):
                                         html.replace( plugin.re, plugin.tmpl );
                             htmlChanged = htmlChanged || preHtml!=html;
@@ -182,6 +172,15 @@
         };
 
   linkify.plugins = {
+      // default links plugin
+      linkifier: function ( html ) {
+          var noProtocolUrl   = /(^|["'(\s]|&lt;)(www\..+?\..+?)((?:[:?]|\.+)?(?=(?:\s|$)|&gt;|[)"',]))/g,
+              httpOrMailtoUrl = /(^|["'(\s]|&lt;)((?:(?:https?|ftp):\/\/|mailto:).+?)((?:[:?]|\.+)?(?=(?:\s|$)|&gt;|[)"',]))/g;
+          return html
+            .replace( noProtocolUrl, '$1<a href="<``>://$2">$2</a>$3' )  // NOTE: we escape `"http` as `"<``>` to make sure `httpOrMailtoUrl` below doesn't find it as a false-positive
+            .replace( httpOrMailtoUrl, '$1<a href="$2">$2</a>$3' )
+            .replace( /"<``>/g, '"http' );  // reinsert `"http`
+        },
       // default mailto: plugin
       mailto: {
           re: /(^|["'(\s]|&lt;)([^"'(\s&]+?@.+\.[a-z]{2,7})(([:?]|\.+)?(?=(\s|$)|&gt;|[)"',]))/gi,
